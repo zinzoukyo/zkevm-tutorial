@@ -1,5 +1,6 @@
 import utils.opcodes as opcodes
 from vm import stack, flow, arith, comparison, sha3env, storage
+
 class EVM:
     def __init__(self, code) -> None:
         self.code = code
