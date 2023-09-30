@@ -2,7 +2,8 @@ import random
 import time
 
 class Fakeblock:
-    def __init__(self):
+    # return a fake block dict
+    def __init__(self) -> None:
         self.blockhash = self._generate_hash()
         self.coinbase = self._generate_address()
         self.timestamp = int(time.time())  # 獲取當前時間戳
@@ -13,6 +14,7 @@ class Fakeblock:
         self.selfbalance = random.randint(50, 150)
         self.basefee = random.randint(10, 50)
         self.difficulty = random.randint(10, 50)
+        self.blockinfo = self.to_dict()
 
     def _generate_hash(self):
         return "0x" + "".join(random.choice("0123456789abcdef") for _ in range(64))

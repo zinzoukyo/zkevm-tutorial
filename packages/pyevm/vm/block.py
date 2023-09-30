@@ -15,11 +15,12 @@ DIFFICULTY = 0x44
 PREVRANDAO = 0x44  # EIP-4399: supplant DIFFICULTY with PREVRANDAO
 GASLIMIT = 0x45
 
-from ..utils import fakeBlock
+from utils import fakeBlock
 class Block:
     def __init__(self, evm, opCode) -> None:
         self.evm = evm
-        self.block = fakeBlock.Fakeblock.to_dict()
+        block = fakeBlock.Fakeblock()
+        self.block = block.blockinfo
         if opCode == CHAINID:
             self.chainid()
         elif opCode == SELFBALANCE:

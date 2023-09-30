@@ -23,13 +23,13 @@ RETURNDATASIZE = 0x3D
 RETURNDATACOPY = 0x3E
 EXTCODEHASH = 0x3F
 
-from eth_hash.auto import keccak
+import sha3
 
 class Sha3Env:
     def __init__(self, evm, opCode) -> None:
         self.evm = evm
         if opCode == SHA3:
-            self.sha3()
+            self._sha3()
         elif opCode == ADDRESS:
             self.address()
         elif opCode == BALANCE:
@@ -63,11 +63,11 @@ class Sha3Env:
         elif opCode == EXTCODEHASH:
             self.extcodehash()
     
-    def sha3(self):
+    def _sha3(self):
         data_start = self.evm.stack.pop()
         data_length = self.evm.stack.pop()
         data = self.evm.memory[data_start:data_start + data_length]
-        result = keccak(data)
+        result = int.from_bytes(sha3.keccak_256(data).digest(), 'big')
         self.evm.stack.append(result)
 
     def address(self):
@@ -135,7 +135,7 @@ class Sha3Env:
     def extcodehash(self):
         address = self.evm.stack.pop()
         code = self.get_code_at_address(address)
-        code_hash = keccak(code)
+        code_hash = sha3(code)
         self.evm.stack.append(code_hash)
 
     def get_code_at_address(self, address):

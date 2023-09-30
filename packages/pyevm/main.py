@@ -1,5 +1,13 @@
 import utils.opcodes as opcodes
-from vm import stack, flow, arith, comparison, sha3env, storage
+from vm import ( 
+    stack, 
+    flow, 
+    arith, 
+    comparison, 
+    sha3env, 
+    storage, 
+    block 
+)
 
 class EVM:
     def __init__(self, code) -> None:
@@ -7,6 +15,7 @@ class EVM:
         self.pc = 0
         self.stack = []
         self.memory = bytearray()
+        self.storage = {}
     
     # Program Counter Return Execute Opcodes
     def next(self):
@@ -18,7 +27,6 @@ class EVM:
     def execute(self):
         while self.pc < len(self.code):
             opCode = self.next()
-
             # stack operations
             if opcodes.PUSH0 <= opCode and opcodes.PUSH32 or \
                 opcodes.POP == opCode or \
@@ -33,7 +41,11 @@ class EVM:
             # arithmetic operations
             elif opcodes.ADD <= opCode and opCode <= opcodes.SIGNEXTEND:
                 arith.Arithmetic(self, opCode)
-
+            
+            # block operations
+            elif opcodes.BLOCKHASH <= opCode and opCode <= opcodes.GASLIMIT:
+                block.Block(self, opCode)
+    
             # stop
             elif opcodes.STOP == opCode:
                 break
@@ -43,15 +55,20 @@ class EVM:
                 comparison.Comparison(self, opCode)
 
             # system operations
-            elif opcodes.SHA3 <= opCode and opCode <= opcodes.EXTCODECOPY:\
+            elif opcodes.SHA3 <= opCode and opCode <= opcodes.EXTCODECOPY:
                 sha3env.Sha3Env(self, opCode)
+            
 
             # memory & stack operations
             elif opcodes.MLOAD <= opCode and opCode <= opcodes.SSTORE:
                 storage.Storage(self, opCode)
+
+            # system operations
+            elif opcodes.RETURN == opCode:
+                break
 # main
 if __name__ == '__main__':
-    code =  b"\x60\x01\x60\x01\x50"
+    code =  b"\x40"
     evm = EVM(code)
     evm.execute()
     print(evm.stack)
