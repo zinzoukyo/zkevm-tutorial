@@ -1,12 +1,14 @@
 import utils.opcodes as opcodes
 from vm import ( 
     stack, 
-    flow, 
     arith, 
     comparison, 
     sha3env, 
+    block,
     storage, 
-    block 
+    flow, 
+    log,
+    system 
 )
 
 class EVM:
@@ -27,45 +29,48 @@ class EVM:
     def execute(self):
         while self.pc < len(self.code):
             opCode = self.next()
-            # stack operations
+            # stack operations (50, 5F-7F, 80-8F, 90-9F)
             if opcodes.PUSH0 <= opCode and opcodes.PUSH32 or \
                 opcodes.POP == opCode or \
                 opcodes.DUP1 <= opCode and opcodes.DUP16 or \
                 opcodes.SWAP1 <= opCode and opcodes.SWAP16:
                 stack.Stack(self, opCode)
             
-            # flow operations
-            elif opcodes.JUMP <= opCode and opCode <= opcodes.JUMPDEST:
-                flow.Flow(self, opCode)
-
-            # arithmetic operations
-            elif opcodes.ADD <= opCode and opCode <= opcodes.SIGNEXTEND:
-                arith.Arithmetic(self, opCode)
-            
-            # block operations
-            elif opcodes.BLOCKHASH <= opCode and opCode <= opcodes.GASLIMIT:
-                block.Block(self, opCode)
-    
-            # stop
+            # stop operations (00)
             elif opcodes.STOP == opCode:
                 break
 
-            # comparison & bitwise logic operations
-            elif opcodes.LT <= opCode and opCode <= opcodes.XOR:
+            # arithmetic operations (01-0B)
+            elif opcodes.ADD <= opCode and opCode <= opcodes.SIGNEXTEND:
+                arith.Arithmetic(self, opCode)
+
+            # comparison & bitwise logic operations (10-1D)
+            elif opcodes.LT <= opCode and opCode <= opcodes.SAR:
                 comparison.Comparison(self, opCode)
 
-            # system operations
+            # sha3 & enviroment operations (20, 30-3F)
             elif opcodes.SHA3 <= opCode and opCode <= opcodes.EXTCODECOPY:
                 sha3env.Sha3Env(self, opCode)
             
-
-            # memory & stack operations
+            # block operations (40-48)
+            elif opcodes.BLOCKHASH <= opCode and opCode <= opcodes.BASEFEE:
+                block.Block(self, opCode)
+            
+            # memory & stack operations (51-55)
             elif opcodes.MLOAD <= opCode and opCode <= opcodes.SSTORE:
                 storage.Storage(self, opCode)
 
-            # system operations
-            elif opcodes.RETURN == opCode:
-                break
+            # flow operations (56-5B)
+            elif opcodes.JUMP <= opCode and opCode <= opcodes.JUMPDEST:
+                flow.Flow(self, opCode)
+            
+            # log operations (A0-A4)
+            elif opcodes.LOG0 <= opCode and opCode <= opcodes.LOG4:
+                log.Log(self, opCode)
+
+            # system operations (F0-FF)
+            elif opcodes.CREATE <= opCode and opCode <= opcodes.SELFBALANCE:
+                system.System(self, opCode)
 # main
 if __name__ == '__main__':
     code =  b"\x40"
